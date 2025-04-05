@@ -110,9 +110,8 @@ def compute_yeom_mia(model, train_data, forget_data, model_name="ResNet18"):
     for step, batch in enumerate(forget_data):
         x_batch, y_batch = batch
         y_pred = model.predict(x_batch, verbose=0)
-        # print("y_pred, ", y_pred)
+
         if model_name in ["MitB0"]:
-            # print("---- IF ----")
             y_pred = y_pred.logits
         # Calculate the loss
         ce_loss = tf.keras.losses.SparseCategoricalCrossentropy(
@@ -124,8 +123,6 @@ def compute_yeom_mia(model, train_data, forget_data, model_name="ResNet18"):
         total_member_count = total_member_count + member_count
         total_size = total_size + tf.shape(loss_forget)[0]
 
-    # print(total_member_count)
-    # print(total_size)
     yeom_mia = (total_member_count/total_size) *100
     print(f"Yeom MIA success rate: {yeom_mia}")
     return yeom_mia.numpy()
