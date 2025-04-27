@@ -1,5 +1,5 @@
-# PUF: Federated Unlearning via Negated Pseudo-Gradients
-This is the official repository for PUF: Federated Unlearning via Negated Pseudo-Gradients
+# Federated Unlearning Made Practical: Seamless Integration via Negated Pseudo-Gradients
+This is the official repository for Federated Unlearning Made Practical: Seamless Integration via Negated Pseudo-Gradients
 
 ## Preliminaries
 The simulation code in this repository mainly leverages TensorFlow (TF). 
@@ -49,6 +49,8 @@ pip install ml_collections=="0.1.1"
 pip install tensorflow-hub=="0.14.0"
 pip install torchvision=="0.13.0"
 pip install transformers=="4.34.0"
+# for charts
+pip install seaborn=="0.13.0"
 ```
 
 ## Creating Client Datasets
@@ -60,6 +62,8 @@ python -m puf_unlearning.dataset_preparation dataset="cifar100" alpha=0.1 total_
 
 python -m puf_unlearning.dataset_preparation dataset="cifar10" alpha=0.3 total_clients=10
 
+# alpha=-1 creates IID partitions
+python -m puf_unlearning.dataset_preparation dataset="cifar100" alpha=-1 total_clients=10
 ```
 
 ## Running the Simulations
