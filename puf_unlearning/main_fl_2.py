@@ -1,11 +1,6 @@
-import warnings
-import os
 import shutil
 import hydra
 import numpy as np
-
-from basics_unlearning.generate_csv_results import compute_yeom_mia
-from basics_unlearning.mia_svc import SVC_MIA
 
 import logging, os
 logging.disable(logging.WARNING)
@@ -13,17 +8,16 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
 # os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
-import tensorflow_datasets as tfds
 from omegaconf import DictConfig, OmegaConf
 
-from basics_unlearning.dataset import (
+from puf_unlearning.dataset import (
     load_client_datasets_from_files,
     load_selected_client_statistics,
     get_string_distribution, load_selected_clients_statistics,
     normalize_img, expand_dims, element_norm_cifar100, PaddedRandomCrop,
     get_preprocess_fn
 )
-from basics_unlearning.utility import create_model, get_test_dataset, preprocess_ds, \
+from puf_unlearning.utility import create_model, get_test_dataset, preprocess_ds, \
     compute_kl_div, preprocess_ds_test, list_clients_to_string, save_line_to_file
 
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -75,6 +69,7 @@ def main(cfg: DictConfig) -> None:
     seed  = cfg.seed
     if dataset in ["cifar100"] and model in ["MitB0"]:
         dataset = "cifar100-transformer"
+        # exit()
         SAVE_ROUND_CLIENTS = 50
     if dataset in ["mnist", "cifar10"]:
         total_classes = 10
@@ -238,7 +233,7 @@ def main(cfg: DictConfig) -> None:
         local_model.fit(
             ds_train_client,
             epochs=epochs,
-            validation_data=ds_test,
+            # validation_data=ds_test,
             verbose=verbose
         )
         # collect per-class mean output

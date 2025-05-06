@@ -1,7 +1,7 @@
 import os
 
-from basics_unlearning.vit import ViTDistilled, ViTClassifier
-from basics_unlearning.vit.model_configs import base_config
+from puf_unlearning.vit import ViTDistilled, ViTClassifier
+from puf_unlearning.vit.model_configs import base_config
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import logging

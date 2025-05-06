@@ -5,11 +5,11 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from basics_unlearning.dataset import element_norm_cifar100, normalize_img, expand_dims, \
+from puf_unlearning.dataset import element_norm_cifar100, normalize_img, expand_dims, \
     element_norm_cifar10, PaddedRandomCrop, element_norm_cifar100_train, \
     element_norm_cifar20, element_norm_cifar10_train
-from basics_unlearning.model import create_cnn_model, create_resnet18
-from basics_unlearning.transformer_utility import get_transformer_model
+from puf_unlearning.model import create_cnn_model, create_resnet18
+from puf_unlearning.transformer_utility import get_transformer_model
 
 
 def save_line_to_file(folder_path, file_name, line):

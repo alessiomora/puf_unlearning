@@ -15,9 +15,9 @@ from omegaconf import DictConfig, OmegaConf
 import hydra
 import os
 
-from basics_unlearning.dataset import normalize_img, load_client_datasets_from_files, \
+from puf_unlearning.dataset import normalize_img, load_client_datasets_from_files, \
     load_selected_client_statistics, get_string_distribution, expand_dims
-from basics_unlearning.model import create_cnn_model
+from puf_unlearning.model import create_cnn_model
 
 
 class black_box_benchmarks(object):

@@ -8,18 +8,18 @@ from omegaconf import DictConfig, OmegaConf
 import matplotlib as plt
 import seaborn as sns
 import pandas as pd
-from basics_unlearning.dataset import load_client_datasets_from_files, normalize_img, \
+from puf_unlearning.dataset import load_client_datasets_from_files, normalize_img, \
     get_string_distribution, expand_dims, load_selected_client_statistics, \
     get_add_unlearning_label_fn, load_label_distribution_selected_client
-from basics_unlearning.main_fl import find_last_checkpoint
-from basics_unlearning.model import create_cnn_model
-from basics_unlearning.model_kd_div import ModelKLDiv, ModelKLDivAdaptive, \
+from puf_unlearning.main_fl_2 import find_last_checkpoint
+from puf_unlearning.model import create_cnn_model
+from puf_unlearning.model_kd_div import ModelKLDiv, ModelKLDivAdaptive, \
     ModelKLDivAdaptiveSoftmax, ModelCompetentIncompetentTeacher, ModelKLDivSoftmaxZero, \
-    ModelKLDivLogitMin
-from basics_unlearning.model_projected_ga import DistanceEarlyStopping, get_distance, custom_train_loop
-from basics_unlearning.utility import draw_and_save_heatmap, compute_kl_div, \
+    ModelKLDivLogitMin, ModelNoT
+from puf_unlearning.model_projected_ga import DistanceEarlyStopping, get_distance, custom_train_loop
+from puf_unlearning.utility import draw_and_save_heatmap, compute_kl_div, \
     create_model, get_test_dataset, preprocess_ds, preprocess_ds_test
-from basics_unlearning.ModelSmoothie import FedSmoothieModel, ModelRandomPenalized, \
+from puf_unlearning.ModelSmoothie import FedSmoothieModel, ModelRandomPenalized, \
     UnlearningModelRandomLabel
 import json
 
@@ -155,6 +155,8 @@ def main(cfg: DictConfig) -> None:
                            metrics=['accuracy'])
     list_dict =[]
     for cid in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    # for cid in [0, 1, 3, 4, 5, 6, 7, 8, 9]:
+    # for cid in [0, 1, 2]:
     # for cid in [4]:
         print(f"-------- [Client {cid}] --------")
         # loading client u's data
@@ -182,7 +184,7 @@ def main(cfg: DictConfig) -> None:
         server_model.set_weights(original_weights)
 
         # original_model.evaluate(ds_test_batched)
-        original_model.evaluate(ds_test)
+        original_model.evaluate(ds_test, verbose=2)
 
         # unlearning routine with kl divergence
         # unlearning_model = ModelKLDiv(server_model, virtual_teacher)
@@ -190,6 +192,24 @@ def main(cfg: DictConfig) -> None:
             # just to use unlearning_model.model
             # we dont train this
             unlearning_model = ModelKLDivAdaptive(server_model, original_model)
+        elif algorithm == "not":
+            unlearning_model = ModelNoT(server_model)
+
+            # Get model weights
+            layer_weights = unlearning_model.get_weights()
+            # print("Before:", layer_weights[0][:5])  # Print first few values
+            # print("Before:", layer_weights[1][:5])  # Print first few values
+
+
+            # Negate the first layer's weights
+            layer_weights[0] = -layer_weights[0]
+            print("Shape first layer", tf.shape(layer_weights[0]))
+            # bias
+            # layer_weights[1] = -layer_weights[1]
+            # print("Shape first layer", tf.shape(layer_weights[1]))
+
+            # Set the modified weights back to the model
+            unlearning_model.set_weights(layer_weights)
         elif algorithm == "random_penalized":
             unlearning_model = ModelRandomPenalized(server_model)
         elif algorithm == "random":
@@ -285,7 +305,7 @@ def main(cfg: DictConfig) -> None:
                                  callbacks=[early_stopping_callback])
         if algorithm in ["projected_ga"]:
             custom_train_loop(unlearning_model, unl_client_model = unl_client_model, epochs=epochs_unlearning, optimizer=optimizer, train_dataset=client_train_ds, threshold=threshold, distance_early_stop=distance_threshold_early_stopping, model_ref=model_ref)
-        elif algorithm in ["natural"]:
+        elif algorithm in ["natural", "not"]:
             print("Do nothing..")
 
         elif algorithm in ["ci", "ci_balanced"]:
@@ -363,24 +383,24 @@ def main(cfg: DictConfig) -> None:
         client_train_ds = client_train_ds.prefetch(tf.data.AUTOTUNE)
 
         print("[Original - Test]")
-        _, acc_o_test = original_model.evaluate(ds_test)
+        _, acc_o_test = original_model.evaluate(ds_test, verbose=2)
         # results_dict[] = acc_o_test
         print("[Original - Train]")
-        _, acc_o_train = original_model.evaluate(client_train_ds)
+        _, acc_o_train = original_model.evaluate(client_train_ds, verbose=2)
         # results_dict[] = acc_o_train
 
         print("[Unlearned - Test]")
-        if algorithm not in ["natural"]:
-            _, acc_u_test = unlearning_model.evaluate(ds_test)
+        if algorithm not in ["natural", "not"]:
+            _, acc_u_test = unlearning_model.evaluate(ds_test, verbose=2)
         else:
-            acc_u_test = unlearning_model.evaluate(ds_test)
+            acc_u_test = unlearning_model.evaluate(ds_test, verbose=2)
         results_dict = {}
         results_dict["test_acc"] = acc_u_test
         print("[Unlearned - Train]")
-        if algorithm not in ["natural"]:
-            _, acc_u_train = unlearning_model.evaluate(client_train_ds)
+        if algorithm not in ["natural", "not"]:
+            _, acc_u_train = unlearning_model.evaluate(client_train_ds, verbose=2)
         else:
-            acc_u_train = unlearning_model.evaluate(client_train_ds)
+            acc_u_train = unlearning_model.evaluate(client_train_ds, verbose=2)
         results_dict["train_acc"] = acc_u_train
         if algorithm not in ["projected_ga"]:
             name = f"{algorithm}_fl_{frozen_layers}_lr{learning_rate_unlearning}_e_{epochs_unlearning}"

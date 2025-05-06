@@ -72,6 +72,39 @@ class ModelKLDiv(tf.keras.Model):
         return self.model.set_weights(weights)
 
 
+
+class ModelNoT(tf.keras.Model):
+    """
+    """
+
+    def __init__(
+        self,
+        model: tf.keras.Model,
+    ):
+        super().__init__()
+        self.model = model
+
+    def test_step(self, data):
+        """Implement logic for one evaluation step.
+
+        This method can be overridden to support custom evaluation logic.
+        """
+        x, y = data
+        y_pred = self.model(x, training=False)  # Forward pass
+        # self.compiled_loss(y, y_pred, regularization_losses=self.local_model.losses)
+        self.compiled_metrics.update_state(y, y_pred)
+        # self.compiled_metrics
+        return {m.name: m.result() for m in self.metrics}
+
+    def get_weights(self):
+        """Return the weights of the local model."""
+        return self.model.get_weights()
+
+    def set_weights(self, weights):
+        """Return the weights of the local model."""
+        return self.model.set_weights(weights)
+
+
 class ModelKLDivAdaptive(tf.keras.Model):
     """
     """
