@@ -100,7 +100,7 @@ def create_model(dataset, total_classes, norm="group"):
             norm=norm,
             seed=1,
         )
-    elif dataset in ["cifar100-transformer"]:
+    elif dataset in ["cifar100-transformer", "birds-transformer"]:
         model = get_transformer_model(
             model_name="mit-b0",
             # classifier_hidden_layers=classifier_hidden_layers,
@@ -146,6 +146,16 @@ def get_test_dataset(dataset, take_n=10000):
                 preprocess_dataset_for_transformers_models(is_training=False))
             .map(get_normalization_fn(model_name="mit-b0", dataset="cifar100"))
         )
+    elif dataset in ["birds-transformer"]:
+        ds_test = tfds.load("caltech_birds2011", split='test',
+                            shuffle_files=False, as_supervised=True)
+        ds_test = (
+            ds_test.map(
+                preprocess_dataset_for_birds_aircafts_cars(is_training=False))
+            .map(get_normalization_fn("mit-b0", dataset="birds"))
+            # .batch(TEST_BATCH_SIZE)
+        )
+        print(f"------- Take n {take_n}")
 
 
     ds_test = ds_test.take(take_n)
@@ -168,6 +178,10 @@ def preprocess_ds_test(ds, dataset="mnist", reshuffle_each_iteration=True):
     elif dataset in ["cifar100-transformer"]:
         ds = ds.shuffle(32, reshuffle_each_iteration=reshuffle_each_iteration).map(
                 preprocess_dataset_for_transformers_models(is_training=False)).map(get_normalization_fn(model_name="mit-b0", dataset="cifar100"))
+    elif dataset in ["birds-transformer"]:
+        ds = ds.shuffle(32, reshuffle_each_iteration=reshuffle_each_iteration).map(
+            preprocess_dataset_for_birds_aircafts_cars(is_training=False)).map(
+            get_normalization_fn(model_name="mit-b0", dataset="birds"))
     return ds
 
 
@@ -199,6 +213,13 @@ def preprocess_ds(ds, dataset="mnist"):
         ds = (ds.shuffle(256)
               .map(preprocess_dataset_for_transformers_models(is_training=True))
               .map(get_normalization_fn(model_name="mit-b0", dataset="cifar100")))
+    elif dataset in ["birds-transformer"]:
+        ds = (
+            ds.shuffle(256)
+            .map(preprocess_dataset_for_birds_aircafts_cars(is_training=True))
+            .map(get_normalization_fn(model_name="mit-b0", dataset="birds"))
+
+        )
 
     return ds
 
@@ -235,7 +256,7 @@ def get_normalization_fn(model_name="mit-b0", dataset="cifar100"):
     elif dataset in ["cars"]:
         mean = [0.4668, 0.4599, 0.4505]
         variance = [np.square(0.2642), np.square(0.2636), np.square(0.2687)]
-    else:
+    else: # birds
         mean = [0.485, 0.456, 0.406]
         variance = [np.square(0.229), np.square(0.224), np.square(0.225)]
 
@@ -261,3 +282,87 @@ def list_clients_to_string(unlearned_cid):
         s = s + str(u)
     print(f"--- unlearning cid string {s} -----")
     return s
+
+
+class RandomResizedCrop(tf.keras.layers.Layer):
+    """Preprocessing birds, aircrafts, cars."""
+    def __init__(self, size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333), **kwargs):
+        super().__init__(**kwargs)
+        self.crop_shape = size
+        self.scale = scale
+        self.log_ratio = (tf.math.log(ratio[0]), tf.math.log(ratio[1]))
+
+    def call(self, inputs: tf.Tensor):
+        """Call the layer on new inputs and returns the outputs as tensors."""
+
+        inputs = tf.expand_dims(inputs, axis=0)
+        batch_size = tf.shape(inputs)[0]
+        # tf.print("batch_size ", batch_size)
+        random_scales = tf.random.uniform(
+            (batch_size,),
+            self.scale[0],
+            self.scale[1]
+        )
+        random_ratios = tf.exp(tf.random.uniform(
+            (batch_size,),
+            self.log_ratio[0],
+            self.log_ratio[1]
+        ))
+
+        new_heights = tf.clip_by_value(
+            tf.sqrt(random_scales / random_ratios),
+            0,
+            1,
+        )
+        new_widths = tf.clip_by_value(
+            tf.sqrt(random_scales * random_ratios),
+            0,
+            1,
+        )
+        height_offsets = tf.random.uniform(
+            (batch_size,),
+            0,
+            1 - new_heights,
+        )
+        width_offsets = tf.random.uniform(
+            (batch_size,),
+            0,
+            1 - new_widths,
+        )
+
+        bounding_boxes = tf.stack(
+            [
+                height_offsets,
+                width_offsets,
+                height_offsets + new_heights,
+                width_offsets + new_widths,
+            ],
+            axis=1,
+        )
+        images = tf.image.crop_and_resize(
+            inputs,
+            bounding_boxes,
+            tf.range(batch_size),
+            self.crop_shape,
+        )
+        image = tf.squeeze(images, axis=0)
+        # tf.print("image ", tf.shape(image))
+        return image
+
+
+def preprocess_dataset_for_birds_aircafts_cars(is_training=True, resolution=224):
+    def resize_and_crop_fn(image, label):
+        if is_training:
+            # Resize to a bigger spatial resolution and take the random
+            # crops.
+            random_resize_crop_fn = RandomResizedCrop(size=(resolution, resolution))
+            image = random_resize_crop_fn(image)
+            image = tf.image.random_flip_left_right(image)
+            # image = tf.image.resize(image, (256, 256))
+            # image = tf.keras.layers.CenterCrop(resolution, resolution)(image)
+        else:
+            # image = tf.image.resize(image, (256, 256))
+            image = tf.keras.layers.CenterCrop(resolution, resolution)(image)
+        return image, label
+
+    return resize_and_crop_fn
