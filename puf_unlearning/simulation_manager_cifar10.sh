@@ -62,6 +62,6 @@ do
   for (( i=0; i <= unl_clients; ++i ))
   do
     echo "$i"
-    python -m basics_unlearning.main_fl_2 --multirun seed=2  dataset="cifar10" alpha=0.3 learning_rate=0.1 total_clients=10 local_epochs=1 total_rounds=1 resume_training=True unlearned_cid=[$i] resuming_after_unlearning.algorithm="mode" mode.deg_rounds=206 mode.max_rounds=210 mode.learning_rate_guidance=0.0005 model="ResNet18"
+    python -m puf_unlearning.main_puf --multirun seed=2  dataset="cifar10" alpha=0.3 learning_rate=0.1 total_clients=10 local_epochs=1 total_rounds=1 resume_training=True unlearned_cid=[$i] resuming_after_unlearning.algorithm="mode" mode.deg_rounds=206 mode.max_rounds=210 mode.learning_rate_guidance=0.0005 model="ResNet18"
   done
 done
