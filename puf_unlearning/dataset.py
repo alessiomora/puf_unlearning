@@ -130,6 +130,8 @@ def load_selected_client_statistics(
     """
     if dataset in ["cifar100-transformer"]:
         dataset = "cifar100"
+    elif dataset in ["birds-transformer"]:
+        dataset = "birds"
 
     if dataset in ["cifar20"]:
         if selected_client == 0:
@@ -154,6 +156,8 @@ def load_selected_client_statistics(
 def load_selected_clients_statistics(selected_clients, alpha, dataset, total_clients):
     if dataset in ["cifar100-transformer"]:
         dataset = "cifar100"
+    elif dataset in ["birds-transformer"]:
+        dataset = "birds"
     if dataset in ["cifar20"]:
         n = int((50000 - 500) / 9)
         local_examples_all_clients = np.array([500, n, n, n, n, n, n, n, n, n])
@@ -177,6 +181,8 @@ def load_selected_clients_statistics(selected_clients, alpha, dataset, total_cli
 def load_label_distribution(alpha, dataset, total_clients):
     if dataset in ["cifar100-transformer"]:
         dataset = "cifar100"
+    elif dataset in ["birds-transformer"]:
+        dataset = "birds"
     if dataset in ["cifar20"]:
         n = int((50000 - 500) / 9)
         smpls_loaded = np.array([500, n, n, n, n, n, n, n, n, n])
@@ -217,6 +223,8 @@ def load_client_datasets_from_files(  # pylint: disable=too-many-arguments
     """
     if dataset in ["cifar100-transformer"]:
         dataset = "cifar100"
+    elif dataset in ["birds-transformer"]:
+        dataset = "birds"
 
     if dataset in ["cifar20"]:
         path = os.path.join(

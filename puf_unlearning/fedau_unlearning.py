@@ -49,7 +49,7 @@ def main(cfg: DictConfig) -> None:
     learning_rate = cfg.fedau.learning_rate
     seed = cfg.seed
     epochs_to_train_w_a = cfg.fedau.epochs
-    alpha_fed_au = 0.04
+    alpha_fed_au = cfg.fedau.coefficient
     l2_weight_decay = 1e-3
     # cids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     # cids = [[0], [1], [2], ]

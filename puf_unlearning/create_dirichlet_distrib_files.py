@@ -79,8 +79,8 @@ def save_dic_as_txt(filename, dic):
 
 if __name__ == '__main__':
     no_repetition = True
-    alphas = [-1]  # -1 generates a homogeneous distrib.
-    datasets = ["cifar100"]  # dataset = ["cifar100", "birds", "cars", "aircrafts"]
+    alphas = [0.1]  # -1 generates a homogeneous distrib.
+    datasets = ["birds"]  # dataset = ["cifar100", "birds", "cars", "aircrafts"]
     nums_of_clients = [10]
     table_dataset_classes = {"mnist": 10, "cifar10": 10, "cifar100": 100, "birds": 200, "cars": 196, "aircrafts": 100}
     table_num_of_examples_per_label = {"mnist": 5421, "cifar100": 500, "birds": 32, "cars": 41,
@@ -139,6 +139,20 @@ if __name__ == '__main__':
                     (x_train, y_train), (_, _) = tf.keras.datasets.cifar100.load_data()
                 elif dataset in ["cifar10"]:
                     (x_train, y_train), (_, _) = tf.keras.datasets.cifar10.load_data()
+                elif dataset in ["birds"]:
+                    dataset_name = recover_dataset_name[dataset]
+                    train_ds = tfds.load(dataset_name, split='train',
+                                         shuffle_files=False, as_supervised=True)
+
+                    y_train = train_ds.map(lambda x, y: y)
+                    y_train_as_list = list(y_train)
+                    y_train_as_list_of_np = [t.numpy() for t in y_train_as_list]
+                    y_train = np.array(y_train_as_list_of_np)
+
+                    x_train = train_ds.map(lambda x, y: x)
+                    x_train_as_list = list(x_train)
+                    x_train_as_numpy = [tf.image.resize(t, size=(224, 224)).numpy() for t in x_train_as_list]
+                    x_train = np.array(x_train_as_numpy)
 
                 indexes_of_labels = list([list([]) for _ in range(0, num_of_classes)])
 
@@ -147,9 +161,10 @@ if __name__ == '__main__':
                 for label in y_train:
                     if dataset in ["mnist"]:
                         indexes_of_labels[label].append(j)
-                    elif dataset in ["cifar100", "cifar10"]:
+                    elif dataset in ["cifar100", "cifar10", "birds"]:
                         indexes_of_labels[label.item()].append(j)
                     j = j + 1
+
                 for i in indexes_of_labels:
                     print(len(i))
 

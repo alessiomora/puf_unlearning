@@ -91,7 +91,7 @@ def main(cfg: DictConfig) -> None:
     elif dataset in ["cifar100"]:
         total_classes = 100
     else:
-        total_classes = 20
+        total_classes = 200
 
     local_batch_size = cfg.local_batch_size
     total_clients = cfg.total_clients
@@ -102,8 +102,8 @@ def main(cfg: DictConfig) -> None:
     epochs_unlearning = cfg.unlearning_epochs
     learning_rate_unlearning = cfg.learning_rate_unlearning
     early_stopping_threshold_pga = cfg.projected_ga.early_stopping_threshold
-    if dataset in ["cifar100"] and model in ["MitB0"]:
-        dataset = "cifar100-transformer"
+    if dataset in ["cifar100", "birds"] and model in ["MitB0"]:
+        dataset = f"{dataset}-transformer"
 
     model_string = model
 
@@ -134,6 +134,11 @@ def main(cfg: DictConfig) -> None:
         pga_ref_model.set_weights(pga_ref_model_weights)
         return pga_ref_model, unl_client_model
 
+    # for MIA
+    # if dataset in ["birds-transformer", "birds"]:
+    #     n = 5794
+    # else:
+    #     n = 10000
 
     ds_test = get_test_dataset(dataset)
 
@@ -215,7 +220,7 @@ def main(cfg: DictConfig) -> None:
         elif algorithm == "random":
             unlearning_model = UnlearningModelRandomLabel(server_model)
         elif algorithm == "logit":
-            unlearning_model = ModelKLDivAdaptive(server_model, original_model, model_type=model_string)
+            unlearning_model = ModelKLDivAdaptive(server_model, original_model, model_type=model_string, dataset=dataset)
         elif algorithm == "logit_min":
             unlearning_model = ModelKLDivLogitMin(server_model, original_model)
         elif algorithm == "softmax":

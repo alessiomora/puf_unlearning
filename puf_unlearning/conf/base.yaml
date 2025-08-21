@@ -36,7 +36,7 @@
 
 
 dataset: "cifar100"
-model: "MitB0"  #or ResNet18
+model: "ResNet-18"  #or ResNet18
 alpha: 0.1  # alpha = 0 --> 1 class per client, -1 homogeneous
 local_batch_size: 32
 total_clients: 10
@@ -44,8 +44,8 @@ total_rounds: 1
 active_clients: 1.0
 local_epochs: 1
 lr_decay: 0.998  # exponential decay per round
-#learning_rate: 0.1  #mnist 0.01, cifar100 0.1  # 3e-4
-learning_rate: 3e-4
+learning_rate: 0.1  #mnist 0.01, cifar100 0.1  # 3e-4
+#learning_rate: 3e-4
 retraining: False
 restart_training: True  # restart training from checkpoint
 resume_training: False
@@ -59,20 +59,12 @@ resuming_after_unlearning:
   frozen_layers: 0
   early_stopping_threshold: 6.0
 
+mode:
+  max_rounds: 60
+  deg_rounds: 56
+  learning_rate_guidance: 0.0005
 
-#dataset: "cifar20"
-#alpha: "baby"
-#local_batch_size: 32
-#total_clients: 10
-#total_rounds: 10
-#active_clients: 1.0
-#local_epochs: 1
-#lr_decay: 0.998
-#learning_rate: 0.1
-#restart_training: True
-#
-#resume_training: False
-#algorithm: "softmax"  # logit or softmax or fixed
-#retraining: False
-#best_round: 200
-#unlearned_cid: 0
+fedau:
+  coefficient: 0.04
+  learning_rate: 1e-1
+  epochs: 10

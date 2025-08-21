@@ -74,7 +74,7 @@ def main(cfg: DictConfig) -> None:
     restart_training = cfg.restart_training  # restart training from checkpoint
     sample_unlearning = cfg.sample_unlearning
     seed = cfg.seed
-    federaser = True
+    federaser = False
 
     if dataset in ["cifar100"] and model in ["MitB0"]:
         dataset = "cifar100-transformer"
@@ -133,8 +133,8 @@ def main(cfg: DictConfig) -> None:
             logit_value = cfg.fedquit.v
             unlearning_config = f"fl_{frozen_layers}_lr{learning_rate_unlearning}_e_{epochs_unlearning}_v_{logit_value}_loss_{fedquit_loss}"
         elif algorithm in ["fedau"]:
-            alpha_fed_au = 0.04
-            epochs_to_train_w_a = 10
+            alpha_fed_au = cfg.fedau.coefficient
+            epochs_to_train_w_a = cfg.fedau.epochs
             unlearning_config = f"alpha_{alpha_fed_au}_e_{epochs_to_train_w_a}"
         else:
             unlearning_config = f"fl_{frozen_layers}_lr{learning_rate_unlearning}_e_{epochs_unlearning}"
@@ -160,8 +160,8 @@ def main(cfg: DictConfig) -> None:
             else:
                 sample_unl_string = "_sample_unl" if sample_unlearning else ""
 
-                if algorithm in ["pseudo_gradient_ascent",
-                                 "pseudo_gradient_ascent_single", "mode"]:
+                if algorithm in ["puf_regular",
+                                 "puf_special", "mode"]:
                     model_checkpoint_dir = os.path.join(f"model_checkpoints",
                                                         config_dir, "checkpoints",
                                                         f"R_{best_round}")
@@ -398,8 +398,8 @@ def main(cfg: DictConfig) -> None:
             early_stop_recovery = True
             if resumed_round == SAVE_ROUND_CLIENTS:
                 if resume_training:
-                    if algorithm not in ["pseudo_gradient_ascent_single",
-                                         "pseudo_gradient_ascent", "mode"]:
+                    if algorithm not in ["puf_special",
+                                         "puf_regular", "mode"]:
                         dir = os.path.join(model_checkpoint_dir, "checkpoints")
                         shutil.rmtree(dir, ignore_errors=True)
                         print("Saving checkpoint global model......")
@@ -430,7 +430,7 @@ def main(cfg: DictConfig) -> None:
                     if active_clients == 1.0:
                         m = max(total_clients * active_clients, 1) - len(unlearned_cid)
                     elif r == SAVE_ROUND_CLIENTS + 1 and algorithm in [
-                        "pseudo_gradient_ascent"]:
+                        "puf_regular"]:
                         m = max(total_clients * active_clients, 1) - len(unlearned_cid)
                     else:
                         m = max(total_clients * active_clients, 1)
@@ -465,7 +465,7 @@ def main(cfg: DictConfig) -> None:
                     total_clients=total_clients)
 
                 if r == SAVE_ROUND_CLIENTS + 1:
-                    if algorithm in ["pseudo_gradient_ascent"]:
+                    if algorithm in ["puf_regular"]:
                         if not sample_unlearning:
                             total_examples = np.sum(selected_client_examples) + np.sum(
                                 unl_client_examples)
@@ -476,7 +476,7 @@ def main(cfg: DictConfig) -> None:
                             else:
                                 total_examples = np.sum(selected_client_examples)
 
-                    elif algorithm in ["pseudo_gradient_ascent_single"]:
+                    elif algorithm in ["puf_special"]:
                         total_examples = np.sum(unl_client_examples)
                     else:
                         if sample_unlearning:
@@ -497,7 +497,7 @@ def main(cfg: DictConfig) -> None:
                 global_weights = server_model.get_weights()
                 # aggregated_mean_output = np.zeros([total_classes, total_classes], np.float32)
                 if r != SAVE_ROUND_CLIENTS + 1 or algorithm not in [
-                    "pseudo_gradient_ascent_single"]:
+                    "puf_special"]:
                     for k in sampled_clients:
                         client_model = server_model
                         client_model.set_weights(global_weights)
@@ -543,7 +543,7 @@ def main(cfg: DictConfig) -> None:
                                 np.savez(path, *delta_w_local)
 
                 if r == SAVE_ROUND_CLIENTS + 1 and algorithm in [
-                    "pseudo_gradient_ascent", "pseudo_gradient_ascent_single"]:
+                    "puf_regular", "puf_special"]:
                     print("... Pseudo gradient ascent")
                     for u in unlearned_cid:
                         client_model = server_model
