@@ -5,7 +5,7 @@ This is the official repository for Federated Unlearning Made Practical: Seamles
 The simulation code in this repository mainly leverages TensorFlow (TF). 
 Python virtual env is managed via Poetry.
 See `puf_unlearning/pyproject.toml`. To reproduce our virtual env,
-follow the instructions in the Environment Setup section of this readme.
+follow the instructions in the Environment Setup section of this README.
 
 The code in this repository has been tested on Ubuntu 22.04.3,
 and with Python version `3.10.13`.
