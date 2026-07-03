@@ -1,5 +1,5 @@
 # Federated Unlearning Made Practical: Seamless Integration via Negated Pseudo-Gradients
-This is the official repository for Federated Unlearning Made Practical: Seamless Integration via Negated Pseudo-Gradients
+This is the official repository for "Federated Unlearning Made Practical: Seamless Integration via Negated Pseudo-Gradients" A. Mora, C. Mazzocca, R. Montanari and P. Bellavista, in IEEE Transactions on Big Data.
 
 ## Preliminaries
 The simulation code in this repository mainly leverages TensorFlow (TF). 
@@ -82,4 +82,24 @@ python -m puf_unlearning.generate_csv_results dataset="cifar10" alpha=0.3
 
 python -m puf_unlearning.generate_csv_results dataset="cifar100" alpha=0.1
 
+```
+
+## Citation
+```
+@ARTICLE{11570837,
+author={Mora, Alessio and Mazzocca, Carlo and Montanari, Rebecca and Bellavista, Paolo},
+journal={ IEEE Transactions on Big Data },
+title={{ Federated Unlearning Made Practical: Seamless Integration via Negated Pseudo-Gradients }},
+year={5555},
+volume={},
+number={01},
+ISSN={2332-7790},
+pages={1-14},
+abstract={ The right to be forgotten is a fundamental principle of privacy-preserving regulations and extends to Machine Learning (ML) paradigms such as Federated Learning (FL). While FL enhances privacy by enabling collaborative model training without sharing private data, trained models still retain the influence of training data. Federated Unlearning (FU) methods recently proposed often rely on impractical assumptions for real-world FL deployments, such as storing client update histories or requiring access to a publicly available dataset. To address these constraints, this paper introduces a novel method that leverages negated Pseudo-gradients Updates for Federated Unlearning (PUF). Our approach only uses standard client model updates, which are employed during regular FL rounds, and interprets them as pseudo-gradients. When a client needs to be forgotten, we apply the negation of their pseudo-gradients, appropriately scaled, to the global model. Unlike state-of-the art mechanisms, PUF seamlessly integrates with FL workflows, incurs no additional computational and communication overhead beyond standard FL rounds, and supports concurrent unlearning requests. We extensively evaluated the proposed method on two well-known benchmark image classification datasets (CIFAR 10 and CIFAR-100) and a real-world medical imaging dataset for segmentation (ProstateMRI), using three different neural architectures: two residual networks and a vision transformer. The experimental results across various settings demonstrate that PUF achieves state-of-the-art forgetting effectiveness and recovery time, without relying on any additional assumptions. },
+keywords={Modeling;Physical unclonable function;Training;Standards;Accuracy;Federated learning;Servers;Measurement;Testing;Conferences},
+doi={10.1109/TBDATA.2026.3705404},
+url = {https://doi.ieeecomputersociety.org/10.1109/TBDATA.2026.3705404},
+publisher={IEEE Computer Society},
+address={Los Alamitos, CA, USA},
+month=jun}
 ```
